@@ -2,9 +2,13 @@ import numpy as np
 import pygame as py
 import sys
 import math
+import random
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
+
+PLAYER = 0
+AI = 1
 
 
 BLUE = (50, 50, 200)
@@ -38,23 +42,23 @@ def winning_move(board, piece):
 	#check for horizontal location for the win
 	for c in range(COLUMN_COUNT - 3):
 		for r in range(ROW_COUNT):
-			if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3] :
+			if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3] == piece :
 				return True
 	#check for vertical position
 	for c in range(COLUMN_COUNT):
 		for r in range(ROW_COUNT - 3):
-			if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] :
+			if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece :
 				return True
 
 	#check positively sloped diagonal
 	for c in range(COLUMN_COUNT - 3):
 		for r in range(ROW_COUNT - 3):
-			if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] :
+			if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] == piece :
 				return True
 	#check for negatively sloped position
 	for c in range(COLUMN_COUNT - 4,COLUMN_COUNT):
 		for r in range(ROW_COUNT - 3):
-			if board[r][c] == piece and board[r+1][c-1] == piece and board[r+2][c-2] == piece and board[r+3][c-3] :
+			if board[r][c] == piece and board[r+1][c-1] == piece and board[r+2][c-2] == piece and board[r+3][c-3] == piece :
 				return True
 
 def draw_board(board):
@@ -70,7 +74,7 @@ def draw_board(board):
 				py.draw.circle(screen, YELLOW, (int(c*SQUARESIZE + SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
 	py.display.update()		
 
-turn = 0
+turn = random.randint(PLAYER, AI)
 board = create_board()
 print_board(board)
 game_over = False
@@ -98,17 +102,17 @@ while not game_over :
 		if event.type == py.MOUSEMOTION:
 			py.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
 			posx = event.pos[0]
-			if turn == 0:
+			if turn == PLAYER:
 				py.draw.circle(screen, RED, (posx, int(SQUARESIZE/2)), RADIUS)
-			else:
-				py.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE/2)), RADIUS)
+			# else:
+			# 	py.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE/2)), RADIUS)
 			py.display.update()
 
 
 		if event.type == py.MOUSEBUTTONDOWN:
 			py.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
 			#Ask for player 1
-			if turn == 0:
+			if turn == PLAYER:
 				posx = event.pos[0]
 				col = int(math.floor(posx/SQUARESIZE))
 				if is_valid_location(board, col):
@@ -119,28 +123,36 @@ while not game_over :
 						lable = myfont.render("Player 1 Won", 1, RED)
 						screen.blit(lable, (40,10))
 						game_over = True
+
+					turn += 1
+					turn = turn%2
+					print_board(board)
+					draw_board(board)
 	
 
 			#Ask player 2 turn
-			else:
-				posx = event.pos[0]
-				col = int(math.floor(posx/SQUARESIZE))
-				if is_valid_location(board, col):
-					row = get_next_open_row(board, col)
-					drop_piece(board, row, col, 2)
+	if turn == AI and not game_over:
+		# posx = event.pos[0]
+		# col = int(math.floor(posx/SQUARESIZE))
+		col = random.randint(0, COLUMN_COUNT - 1)
+		if is_valid_location(board, col):
+			py.time.wait(100)
+			row = get_next_open_row(board, col)
+			drop_piece(board, row, col, 2)
 
-					if winning_move(board, 2):
-						lable = myfont.render("Player 2 Won", 1, YELLOW)
-						screen.blit(lable, (40,10))
-						game_over = True
+			if winning_move(board, 2):
+				lable = myfont.render("Player 2 Won", 1, YELLOW)
+				screen.blit(lable, (40,10))
+				game_over = True
 
 
 	
 
 			print_board(board)
 			draw_board(board)
+
 			turn += 1
 			turn = turn%2
 
-			if game_over:
-				py.time.wait(3000)
+	if game_over:
+		py.time.wait(3000)
